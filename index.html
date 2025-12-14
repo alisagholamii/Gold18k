@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gold 18K | قیمت طلا</title>
+<title>Gold 18K</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -22,33 +22,39 @@ body{
 h1{
   text-align:center;
   color:gold;
+  margin-bottom:30px;
 }
 .card{
-  background:rgba(255,215,0,.08);
-  border:1px solid rgba(255,215,0,.3);
-  border-radius:20px;
-  padding:20px;
-  margin:20px 0;
-  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  background:linear-gradient(145deg,rgba(255,215,0,.15),rgba(255,215,0,.03));
+  border:1px solid rgba(255,215,0,.35);
+  border-radius:22px;
+  padding:22px;
+  margin:25px 0;
+  box-shadow:
+    0 25px 70px rgba(0,0,0,.7),
+    inset 0 0 40px rgba(255,215,0,.12);
+  transform-style:preserve-3d;
+  transition:.3s ease;
+}
+.card:hover{
+  transform:perspective(1000px) rotateX(4deg) rotateY(-4deg);
 }
 .row{
   display:flex;
   justify-content:space-between;
-  margin:12px 0;
+  margin:14px 0;
 }
-.label{color:#ccc}
+.label{color:#ddd}
 .value{
   color:#3cff9a;
   font-weight:900;
+  font-size:18px;
 }
 .footer{
   text-align:center;
   font-size:12px;
   color:#aaa;
-}
-.loading{
-  text-align:center;
-  color:#ffd700;
+  margin-top:20px;
 }
 </style>
 </head>
@@ -68,23 +74,22 @@ h1{
 <div class="row"><span class="label">۱ کیلو طلای ۱۸ عیار</span><span class="value" id="kgToman">—</span></div>
 </div>
 
-<div class="footer loading" id="status">در حال دریافت قیمت‌ها…</div>
+<div class="footer" id="status">در حال دریافت قیمت‌ها…</div>
 </div>
 
 <script>
 async function load(){
   try{
-    // قیمت جهانی طلا (USD)
-    const goldRes = await fetch("https://api.metals.live/v1/spot/gold");
-    const goldData = await goldRes.json();
-    const ounce24 = goldData[0][1]; // USD
+    // قیمت جهانی طلا
+    const g = await fetch("https://api.metals.live/v1/spot/gold");
+    const gdata = await g.json();
+    const ounce24 = gdata[0][1];
 
-    // نرخ دلار به تومان (تقریبی بازار آزاد)
-    const fxRes = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=IRR");
-    const fxData = await fxRes.json();
-    const usdToToman = fxData.rates.IRR / 10;
+    // دلار آزاد (پایدار)
+    const fx = await fetch("https://open.er-api.com/v6/latest/USD");
+    const fxdata = await fx.json();
+    const usdToToman = fxdata.rates.IRR / 10;
 
-    // محاسبات
     const ounce18 = ounce24 * 0.75;
     const kilo18Usd = ounce18 * 32.1507;
     const kilo18Toman = kilo18Usd * usdToToman;
