@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gold 18K</title>
+<title>Gold 18K | قیمت طلا</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
 
@@ -46,6 +46,10 @@ h1{
   font-size:12px;
   color:#aaa;
 }
+.loading{
+  text-align:center;
+  color:#ffd700;
+}
 </style>
 </head>
 
@@ -55,44 +59,52 @@ h1{
 
 <div class="card">
 <h3>🌍 بازار جهانی</h3>
-<div class="row"><span class="label">۱ کیلو ۱۸ عیار (USD)</span><span class="value" id="gkg">—</span></div>
-<div class="row"><span class="label">انس ۱۸ عیار (USD)</span><span class="value" id="goz">—</span></div>
+<div class="row"><span class="label">انس طلا (USD)</span><span class="value" id="oz">—</span></div>
+<div class="row"><span class="label">۱ کیلو ۱۸ عیار (USD)</span><span class="value" id="kgUsd">—</span></div>
 </div>
 
 <div class="card">
 <h3>🇮🇷 بازار ایران</h3>
-<div class="row"><span class="label">۱ کیلو (تومان)</span><span class="value" id="irt">—</span></div>
-<div class="row"><span class="label">۱ کیلو (دلار)</span><span class="value" id="irusd">—</span></div>
-<div class="row"><span class="label">۱ کیلو (لیر 🇹🇷)</span><span class="value" id="irtry">—</span></div>
+<div class="row"><span class="label">۱ کیلو طلای ۱۸ عیار</span><span class="value" id="kgToman">—</span></div>
 </div>
 
-<div class="footer">به‌روزرسانی خودکار هر ۶۰ ثانیه</div>
+<div class="footer loading" id="status">در حال دریافت قیمت‌ها…</div>
 </div>
 
 <script>
 async function load(){
-  const g = await fetch("https://api.allorigins.win/raw?url=https://www.goldprice.org/");
-  const t = await g.text();
-  const oz24 = Number(t.match(/Gold Price per Ounce.*?([\d,]+)/)[1].replace(/,/g,""));
-  const oz18 = oz24 * 0.75;
-  const kg18 = oz18 * 32.1507;
+  try{
+    // قیمت جهانی طلا (USD)
+    const goldRes = await fetch("https://api.metals.live/v1/spot/gold");
+    const goldData = await goldRes.json();
+    const ounce24 = goldData[0][1]; // USD
 
-  document.getElementById("goz").innerText = oz18.toLocaleString()+" USD";
-  document.getElementById("gkg").innerText = kg18.toLocaleString()+" USD";
+    // نرخ دلار به تومان (تقریبی بازار آزاد)
+    const fxRes = await fetch("https://api.exchangerate.host/latest?base=USD&symbols=IRR");
+    const fxData = await fxRes.json();
+    const usdToToman = fxData.rates.IRR / 10;
 
-  const iran = await fetch("https://api.allorigins.win/raw?url=https://alanchand.com/gold-price/18ayar");
-  const it = await iran.text();
-  const gram = Number(it.match(/([\d,]{7,})/)[1].replace(/,/g,""));
-  const kiloT = gram * 1000;
+    // محاسبات
+    const ounce18 = ounce24 * 0.75;
+    const kilo18Usd = ounce18 * 32.1507;
+    const kilo18Toman = kilo18Usd * usdToToman;
 
-  const fx = await fetch("https://api.allorigins.win/raw?url=https://alanchand.com/currencies-price");
-  const ft = await fx.text();
-  const usd = Number(ft.match(/دلار آمریکا[\s\S]*?([\d,]{3,})/)[1].replace(/,/g,""));
-  const tr = Number(ft.match(/لیر ترکیه[\s\S]*?([\d,]{3,})/)[1].replace(/,/g,""));
+    document.getElementById("oz").innerText =
+      ounce18.toLocaleString("fa-IR") + " USD";
 
-  document.getElementById("irt").innerText = kiloT.toLocaleString()+" تومان";
-  document.getElementById("irusd").innerText = (kiloT/usd).toFixed(0)+" USD";
-  document.getElementById("irtry").innerText = ((kiloT/usd)*(usd/tr)).toFixed(0)+" TRY";
+    document.getElementById("kgUsd").innerText =
+      kilo18Usd.toLocaleString("fa-IR") + " USD";
+
+    document.getElementById("kgToman").innerText =
+      kilo18Toman.toLocaleString("fa-IR") + " تومان";
+
+    document.getElementById("status").innerText =
+      "آخرین بروزرسانی: " + new Date().toLocaleTimeString("fa-IR");
+
+  }catch(e){
+    document.getElementById("status").innerText =
+      "❌ خطا در دریافت قیمت‌ها";
+  }
 }
 
 load();
